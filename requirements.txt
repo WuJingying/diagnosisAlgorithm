@@ -1,0 +1,10 @@
+uvicorn
+numpy
+torch
+matplotlib
+pygame==2.2.0
+
+openpyxl
+fastapi
+pydantic
+pandas
