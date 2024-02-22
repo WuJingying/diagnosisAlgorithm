@@ -9,7 +9,7 @@ class main_process:
     def __init__(self, row_size=utils.row_size, column_size=utils.column_size, AI=None):
         self.row_size = row_size
         self.column_size = column_size
-        self.board = np.zeros([self.row_size + 8, self.column_size + 8])
+        self.board = np.zeros([self.row_size + 8, self.column_size + 8])  # 前后扩展8个状态？
         self.current_player = 1
         self.passed = 0
         if AI:
@@ -103,6 +103,7 @@ class main_process:
             if val != str:
                 arrnew.append(val)
         return arrnew
+
 
     # 计算当前路径的得分
     # 如果路径上的症状在症状打分表中存在且有得分，则加到score中

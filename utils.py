@@ -24,7 +24,7 @@ row_size = df.shape[0]-1  # 属性数量
 column_size = df.shape[1]  # 每个属性对应的字段数量
 learning_rate = 0.1
 cat_size = 5
-max_step = column_size  # 每次对局的最大步数
+max_step = 10  # 每次对局，一方的最大步数
 
 
 class distribution_calculater:
