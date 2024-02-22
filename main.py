@@ -13,7 +13,8 @@ warnings.filterwarnings("ignore")
 import torch
 import json
 
-
+matrixFile = '0222矩阵.xlsx'
+diseaseScoreFile = 'symptomScores.txt'
 # train函数完成模型训练
 def train(tree_file=None, pretrained_model=None, game_file_saved_dict="game_record_2"):
     # 保存游戏记录的路径
@@ -123,7 +124,5 @@ def train_use_record_file():
 
 
 if __name__ == '__main__':
-    matrixFile = '0222矩阵.xlsx'
-    diseaseScoreFile = 'symptomScores.txt'
     train()
     # print("finish")

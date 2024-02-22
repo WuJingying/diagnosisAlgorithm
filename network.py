@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-import numpy as np
 
 torch.set_default_tensor_type(torch.FloatTensor)
 IN_FEATURES = 704  # tensors大小，由矩阵大小决定
