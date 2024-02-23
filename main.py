@@ -4,17 +4,18 @@ import warnings
 
 import matplotlib.pyplot as plt
 
+import torch
+import json
 import utils
 from network import neuralnetwork as nn
 from new_MCTS import MCTS
 
 warnings.filterwarnings("ignore")
 
-import torch
-import json
-
 matrixFile = '0222矩阵.xlsx'
 diseaseScoreFile = 'symptomScores.txt'
+
+
 # train函数完成模型训练
 def train(tree_file=None, pretrained_model=None, game_file_saved_dict="game_record_2"):
     # 保存游戏记录的路径
@@ -90,7 +91,7 @@ def train(tree_file=None, pretrained_model=None, game_file_saved_dict="game_reco
             plt.figure()
             plt.plot(record)
             plt.title("cross entropy loss")
-            plt.xlabel("step passed")
+            plt.xlabel("step totalSteps")
             plt.ylabel("Loss")
             plt.savefig("loss record_{}.svg".format(game_time))
             plt.close()
