@@ -80,21 +80,21 @@ def train(tree_file=None, pretrained_model=None, game_file_saved_dict="game_reco
             print("train finished")  # 一次训练完成
 
         # 保存一次模型
-        if game_time % 50 == 0:  # 每完成1次训练，保存一次模型。并保存入test_game_record中
+        if game_time % 100 == 0:  # 每完成2次训练，保存一次模型。并保存入test_game_record中
             torch.save(Net, "model_{}.pkl".format(game_time))
             test_game_record, _, _ = tree.game(train=False)
             utils.write_file(test_game_record, game_file_saved_dict + "/" + 'test_{}.pkl'.format(game_time))
             print("We finished a test game at {} game time".format(game_time))
 
         # 每100次对局,输出一次loss record图像
-        if game_time % 100 == 0:
-            plt.figure()
-            plt.plot(record)
-            plt.title("cross entropy loss")
-            plt.xlabel("step totalSteps")
-            plt.ylabel("Loss")
-            plt.savefig("loss record_{}.svg".format(game_time))
-            plt.close()
+        # if game_time % 100 == 0:
+        #     plt.figure()
+        #     plt.plot(record)
+        #     plt.title("cross entropy loss")
+        #     plt.xlabel("step totalSteps")
+        #     plt.ylabel("Loss")
+        #     plt.savefig("loss record_{}.svg".format(game_time))
+        #     plt.close()
 
         game_time += 1  # 更新对局次数
 

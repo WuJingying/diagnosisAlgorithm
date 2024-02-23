@@ -128,11 +128,11 @@ class MCTS:
     def simulation(self):  # simulation的程序
         eval_counter, step_per_simulate = 0, 0
         for _ in range(self.s_per_step):
-            expand, game_continue = False, True
+            expand = False
             this_node = self.current_node
             self.simulate_game.simulate_reset(self.game_process.current_board_state(True))
             state = self.simulate_game.current_board_state()
-            while game_continue and not expand:  # 当游戏未结束且无法扩展结点时
+            while not self.game_process.endFlag and not expand:  # 当游戏未结束且无法扩展结点时
                 if this_node.eval_or_not():
                     # self.NN.eval只有参数state，由utils.transfer_to_input给出
                     state_tmp = utils.transfer_to_input(state, self.simulate_game.which_player(), self.row_size, self.column_size)
@@ -143,10 +143,10 @@ class MCTS:
                         this_node.add_child(action=move, priorP=state_prob[0, move[0] * self.column_size + move[1]])
 
                 this_node, expand, action = this_node.UCB_sim()
-                game_continue, state = self.simulate_game.step(self, action)
+                state = self.simulate_game.step(self, action)
                 step_per_simulate += 1
 
-            if not game_continue:  # 游戏结束
+            if self.game_process.endFlag:  # 游戏结束
                 this_node.backup(1)
             elif expand:  # 扩展结点
                 _, state_v = self.NN.eval(
@@ -155,7 +155,6 @@ class MCTS:
         return eval_counter / self.s_per_step, step_per_simulate / self.s_per_step
 
     def game(self, train=True):  # 主程序，产生game_record
-        game_continue = True
         game_record = []
         begin_time = int(time.time())
         step = 1
@@ -163,15 +162,12 @@ class MCTS:
         total_step = 0
         # 模拟对局
         print("对局开始")
-        while game_continue:
-            begin_time1 = int(time.time())  # 记录开始时间
+        while not self.game_process.endFlag:  # endFlag为False,表示没结束
             avg_eval, avg_s_per_step = self.simulation()  # 更新UCB值中的参数
             action, distribution = self.current_node.get_distribution(train=train)  # 获得当前的action和distribution
             print(self.game_process.current_player, "开始落子")
-            game_continue, state = self.game_process.step(self, utils.str_to_move(action))  # 获取执行action后的state和游戏是否结束的flag
-            print("落子情况", self.game_process.last_step)
-            if self.game_process.totalSteps >= utils.max_step:  # 总步数超过上限则结束对局
-                game_continue = False
+            state = self.game_process.step(self, utils.str_to_move(action))  # 获取执行action后的state和游戏是否结束的flag
+            print("落子情况", [self.game_process.last_step[0]-4, self.game_process.last_step[1]-4])
             self.current_node = self.MCTS_step(action)  # 更新结点
             game_record.append({"distribution": distribution, "action": action})  # 保存一个时刻的对局信息
             total_eval += avg_eval

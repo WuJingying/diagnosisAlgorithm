@@ -13,12 +13,14 @@ class main_process:
         self.board = np.zeros([self.row_size + 8, self.column_size + 8])  # 前后扩展8个状态？
         self.current_player = 1  # 当前该黑方or白方落子
         self.totalSteps = 0  # 记录总落子数
+        self.endFlag = False
 
     # 重置，棋盘清零，黑方先落子
     def renew(self):
         self.board = np.zeros([self.row_size + 8, self.column_size + 8])
         self.current_player = 1
         self.totalSteps = 0
+        self.endFlag = False
 
     def which_player(self):
         return self.current_player
@@ -74,41 +76,48 @@ class main_process:
         board = self.board[4:self.row_size + 4, 4:self.column_size + 4]  # 获取棋盘
         if not self.board[place[0] + 4, place[1] + 4] and utils.can_place_in_this_column(self.current_player, board,
                                                                                          place[1]):
-            self.totalSteps += 1
-            self.board[place[0] + 4, place[1] + 4] = self.current_player  # 将棋子置于该位置
-            self.current_player = -self.current_player  # 交换玩家
+            self.board[place[0] + 4, place[1] + 4] = self.current_player  # 落子
             self.last_step = [place[0] + 4, place[1] + 4]  # 记录这次落子的位置
+            self.totalSteps += 1  # 总步数+1
+            self.current_player = -self.current_player  # 交换玩家
+
             # 都返回对局状态和当前棋盘
             # 必须落在疾病一列才能分胜负,其他情况都继续对局,除非步数达到上限
-            if self.check_win(tree):  # 这次落子后，current_player获胜了，用False表示对局已结束
-                return False, self.board[4:self.row_size + 4, 4:self.column_size + 4]
-            elif self.totalSteps >= utils.max_step:  # 最后未分出胜负，返回None，结束游戏
-                return None, self.board[4:self.row_size + 4, 4:self.column_size + 4]
-            return True, self.board[4:self.row_size + 4, 4:self.column_size + 4]  #还没有落在疾病一列,但落子合法,游戏继续
-        else:  # 该位置不可落子, 总步数不增加,重新落子,返回true表示游戏继续
-            return True, self.board[4:self.row_size + 4, 4:self.column_size + 4]
+            # 若一方落在疾病一列则立刻结束
+            if self.check_win(tree):  # 胜负已分
+                self.endFlag = True  # 游戏结束
+            elif self.totalSteps >= utils.max_step:  # 胜负未分但步数达到上限
+                self.endFlag = True  # 游戏结束
+            else:  # 胜负未分但步数未达上限
+                self.endFlag = False
+            return self.board[4:self.row_size + 4, 4:self.column_size + 4]
+        else:  # 该位置不可落子, 总步数不增加,重新落子,游戏继续
+            self.endFlag = False
+            return self.board[4:self.row_size + 4, 4:self.column_size + 4]
 
-    # 判断是否获胜，方法是计算路径总得分
+    # 判断是否胜负已分
+    # 必须在疾病一列有落子,并且下够了5个不同列
     def check_win(self, tree):
         category = ""
         if len(tree.matrixHead) > self.last_step[1]:
             category = tree.matrixHead[self.last_step[1]]  # 获取上一步落子所在列的属性名称
-        if utils.isDisease(category):  # 如果上一步落子在疾病一列,则分出胜负,有了赢家
-            # 当前落子方 1为黑方，-1为白方
+        if utils.isDisease(category):
+            # 如果当前落子在疾病一列,则强制对方也在疾病一列落子,然后分别计算双方的分数,结束对局
             player = self.board[self.last_step[0], self.last_step[1]]  # 获取上一步落子的颜色
-            # 当前落子位置在棋盘范围内
+            # 当前位置可以落子
             if self.last_step[0] < len(tree.matrix) and self.last_step[1] < len(tree.matrix[self.last_step[0]]):
-                currentDisease = tree.matrix[self.last_step[0]][self.last_step[1]]  # 获取目前的疾病
-                score = self.calculate_score(tree, player, currentDisease, self.last_step[0])  # 当前player的得分
+                currentDisease = tree.matrix[self.last_step[0]][self.last_step[1]]  # 获取当前疾病
+                diseaseIndex = self.last_step[0] - 4
+                score = self.calculate_score(tree, player, currentDisease)  # 当前player的得分
                 if score > 0:  # 如果当前方分数大于0，则为有效路径，需要再计算另一方的分数
                     # 对手的疾病落子从剩下的疾病列表中任选一个
                     anotherPlayer = -player  # 对手
                     diseaseList = self.removeStrFromArray(tree.disease, currentDisease)
                     anotherDisease = random.sample(diseaseList, 1)[0]
-                    anotherDiseaseIndex = tree.disease.index(anotherDisease)
-                    anotherScore = self.calculate_score(tree, anotherPlayer, anotherDisease, anotherDiseaseIndex)
+                    anotherScore = self.calculate_score(tree, anotherPlayer, anotherDisease)
                     if score > anotherScore:  # 需不需要加个经验值，分数大于某个经验值算作？？？
                         return True  # 表示player获胜
+        # 没有在疾病一列落子,则胜负未分
         return False
 
     # 移除数组中的一个元素
@@ -122,9 +131,9 @@ class main_process:
     # 计算当前路径的得分
     # 如果路径上的症状在症状打分表中存在且有得分，则加到score中
     # rowNum表示所在的行？
-    def calculate_score(self, tree, player, currentDisease, row_index):
-        board = self.board
-        categoryList = []
+    def calculate_score(self, tree, player, currentDisease):
+        board = self.board[4:self.row_size + 4, 4:self.column_size + 4]
+        catList = []
         score = 0
         symptomDict = {}
         # 如果这个疾病存在于症状打分表中
@@ -134,21 +143,18 @@ class main_process:
         #  遍历棋盘
         for i in range(len(tree.matrix)):
             for j in range(len(tree.matrix[i])):
-                val = board[i][j]
-                # val == player? 棋盘上(i,j)位置是当前player的子吗
-                # i!=row_index
-                # j!=self.last_step[1] 和上一步的落子不在同一列
-                if val == player and i != row_index and j != self.last_step[1]:
+                if board[i][j] == player:   # 找到这个player的所有落子
                     matrixVal = tree.matrix[i][j]  # 获取对应位置的术语
                     if matrixVal in symptomDict:  # 如果这个术语在对应疾病的症状:分数字典中
-                        score += symptomDict.get(matrixVal)  # 加上这个症状对应的分数
+                        score += symptomDict.get(matrixVal)  # 累计这个症状对应的分数
+
+        # return score
                     cat = tree.matrixHead[j]
-                    if cat not in categoryList:
-                        categoryList.append(cat)  # 把这个属性名称加到列表中
-        if len(categoryList) >= utils.max_step and not utils.isContainsDisease(categoryList):  # 步数超过上限还不包括疾病
+                    if cat not in catList:
+                        catList.append(cat)  # 把这个属性名称加到列表中
+        if len(catList) >= utils.max_step and not utils.isContainsDisease(catList):  # 步数超过上限
             return 0
-        elif len(categoryList) >= utils.cat_size and not utils.isContainsDisease(
-                categoryList):  # 至少历史步骤中已经有5种类型，并且这5种类型中不包含疾病
-            return score  # 返回得分,对局继续进行
-        else:
+        elif len(catList) >= utils.cat_size and not utils.isContainsDisease(catList):  # 至少历史步骤中已经有5种类型，并且这5种类型中不包含疾病
+            return score
+        else:  # 落子太少
             return 0
