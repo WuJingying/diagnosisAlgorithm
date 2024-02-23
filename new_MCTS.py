@@ -102,10 +102,10 @@ class MCTS:
         self.simulate_game = five_stone_game(row_size=row_size, column_size=column_size)  # 这里附加用于模拟的游戏进程
 
         # 加载矩阵文件
-        matrixHead, disease, matrix = utils.read_excel(matrixFile)
-        self.matrixHead = matrixHead
-        self.matrix = matrix
-        self.disease = disease
+        matrixHead, disease, matrix = utils.readMatrix(matrixFile)
+        self.matrixHead = matrixHead  # 属性名称
+        self.matrix = matrix  # 不含表头的术语矩阵
+        self.disease = disease  # 疾病列表
 
         # 加载疾病打分文件
         self.disease_symptom = {}
@@ -161,27 +161,28 @@ class MCTS:
         step = 1
         total_eval = 0
         total_step = 0
-        # 模拟若干对局
+        # 模拟对局
+        print("对局开始")
         while game_continue:
-            begin_time1 = int(time.time())
+            begin_time1 = int(time.time())  # 记录开始时间
             avg_eval, avg_s_per_step = self.simulation()  # 更新UCB值中的参数
             action, distribution = self.current_node.get_distribution(train=train)  # 获得当前的action和distribution
+            print(self.game_process.current_player, "开始落子")
             game_continue, state = self.game_process.step(self, utils.str_to_move(action))  # 获取执行action后的state和游戏是否结束的flag
+            print("落子情况", self.game_process.last_step)
+            if self.game_process.totalSteps >= utils.max_step:  # 总步数超过上限则结束对局
+                game_continue = False
             self.current_node = self.MCTS_step(action)  # 更新结点
             game_record.append({"distribution": distribution, "action": action})  # 保存一个时刻的对局信息
-            end_time1 = int(time.time())
-            print("step:{},cost:{}s, total time:{}:{} Avg eval:{}, Aver step:{}".format(step, end_time1 - begin_time1,
-                                                                                        int(( end_time1 - begin_time) / 60),
-                                                                                        (end_time1 - begin_time) % 60,
-                                                                                        avg_eval, avg_s_per_step), end="\r")
             total_eval += avg_eval
             total_step += avg_s_per_step
             step += 1
+        print("对局结束!")
         self.renew()
         end_time = int(time.time())
         min = int((end_time - begin_time) / 60)
         second = (end_time - begin_time) % 60
-        print("In last game, we cost {}:{}".format(min, second), end="\n")  # 完成一次game的事件
+        print("In this game, we cost {}:{}".format(min, second), end="\n")  # 完成一次game的事件
         return game_record, total_eval / step, total_step / step
 
     def interact_game_init(self):

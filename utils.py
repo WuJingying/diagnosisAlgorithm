@@ -23,9 +23,8 @@ df = pd.read_excel("0222矩阵.xlsx", header=None)
 row_size = df.shape[0]-1  # 属性数量
 column_size = df.shape[1]  # 每个属性对应的字段数量
 learning_rate = 0.1
-cat_size = 5
-max_step = 10  # 每次对局，一方的最大步数
-
+cat_size = 5    # 属性数量
+max_step = column_size  # 最大步数,因为一列只落一子,所以与column_size相等
 
 class distribution_calculater:
     def __init__(self, row_size, column_size):
@@ -243,7 +242,7 @@ def visualization(file_name, row_size, column_size):
         time.sleep(2)
 
 
-def read_excel(file_name):
+def readMatrix(file_name):
     # 打开文件
     wb = load_workbook(file_name)
     sheetNames = wb.sheetnames
@@ -278,3 +277,12 @@ def isDisease(str):
 
 def isContainsDisease(arr):
     return '疾病' in arr
+
+
+# 计算同一列是否已经有同色的落子, 返回true表示该列可以落子
+def can_place_in_this_column(player, matrix, column_index):
+    for i in range(len(matrix)):
+        if matrix[i][column_index] == player:   # 这一列存在同色落子,则player不可再该列再次落子
+            return False
+    return True
+

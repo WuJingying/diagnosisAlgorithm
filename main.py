@@ -54,7 +54,7 @@ def train(tree_file=None, pretrained_model=None, game_file_saved_dict="game_reco
     while True:
         # game_record包含每一步的distribution和action
         # 每个game_record代表一局游戏，长度为奇数表示最后一个落子的是黑方
-        game_record, eval, steps = tree.game()
+        game_record, eval, steps = tree.game()   # 完成一次对局
         if len(game_record) % 2 == 1:  # game_record长度为奇数，黑方获胜
             print("game {} completed, black win, this game length is {}".format(game_time, len(game_record)))
         else:  # game_record长度为偶数，白方获胜
@@ -105,7 +105,7 @@ def train_use_record_file():
     game_time = 75
     Net = nn(input_layers=3, row_size=utils.row_size, column_size=utils.column_size, learning_rate=utils.learning_rate)
     tree = MCTS(row_size=utils.row_size, column_size=utils.column_size, neural_network=Net)
-    matrixHead, disease, matrix = utils.read_excel(matrixFile)
+    matrixHead, disease, matrix = utils.readMatrix(matrixFile)
     tree.matrixHead = matrixHead
     tree.matrix = matrix
     tree.disease = disease
@@ -127,3 +127,4 @@ def train_use_record_file():
 if __name__ == '__main__':
     train()
     # print("finish")
+
