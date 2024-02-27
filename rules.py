@@ -155,6 +155,7 @@ class main_process:
         if len(catList) >= utils.max_step and not utils.isContainsDisease(catList):  # 步数超过上限
             return 0
         elif len(catList) >= utils.cat_size and not utils.isContainsDisease(catList):  # 至少历史步骤中已经有5种类型，并且这5种类型中不包含疾病
+            score += len(catList)  # 把路径长度累加到奖励得分中
             return score
         else:  # 落子太少
             return 0

@@ -97,7 +97,7 @@ def predict(matrixFile, diseaseScoreFile, input, modelName):
 if __name__ == "__main__":
     matrixFile = '0222矩阵.xlsx'
     diseaseScoreFile = 'symptomScores.txt'
-    input = {"人群": "青少年人群", "症状": "三多一少"}
+    input = {"人群": "青少年人群", "疾病": "2型糖尿病"}
     model = "model_100.pkl"
     actions = predict(matrixFile, diseaseScoreFile, input, model)
     for action in actions:
