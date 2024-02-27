@@ -11,7 +11,4 @@ app.include_router(mctsPredict.MCTS_predict)
 # http://127.0.0.1:8083/docs
 
 if __name__ == "__main__":
-    u.run(app=app,
-                host="127.0.0.1",
-                port=8083,
-                workers=1)
+    u.run(app=app, host="127.0.0.1", port=8083, workers=1)

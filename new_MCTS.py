@@ -190,8 +190,8 @@ class MCTS:
         return state, game_continue
 
     def interact_game1(self, action):
-        game_continue, state = self.game_process.step(self, action)
-        return state, game_continue
+        state = self.game_process.step(self, action)
+        return state, not self.game_process.endFlag
 
     def interact_game2(self, action, game_continue, state):
         self.current_node = self.MCTS_step(utils.move_to_str(action))
@@ -209,9 +209,10 @@ class MCTS:
                 action["cat"] = cat
                 action["grid"] = place
             action = actions[0]["action"]
-            game_continue, state = self.game_process.step(self, utils.str_to_move(action))
+            state = self.game_process.step(self, utils.str_to_move(action))
             self.current_node = self.MCTS_step(action)
-        return state, game_continue
+        return state, not self.game_process.endFlag
+
 
     def interact_predict(self, action, game_continue, state):
         self.current_node = self.MCTS_step(utils.move_to_str(action))

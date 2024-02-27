@@ -20,7 +20,7 @@ class PredictModel(BaseModel):  # 自定义模型名字
     matrixFile = '0222矩阵.xlsx'
     diseaseScoreFile = 'symptomScores.txt'
     input = {"人群": "青少年人群", "症状": "三多一少"}
-    model = 'model_200.pkl'  # 模型
+    model = 'model_100.pkl'  # 模型
 
 
 MCTS_predict = APIRouter()
@@ -48,7 +48,6 @@ async def mctsPredict(model: PredictModel):
     actions = np.asarray(actions)
     result = json.dumps(actions.tolist(), indent=4, cls=NpEncoder, ensure_ascii=False)
     print(result)
-
     return result
 
 
@@ -92,7 +91,6 @@ def predict(matrixFile, diseaseScoreFile, input, modelName):
         record, game_continue = tree.interact_game1(grid)
 
     actions = tree.interact_predict(currentGrid, game_continue, record)
-
     return actions
 
 
@@ -100,4 +98,8 @@ if __name__ == "__main__":
     matrixFile = '0222矩阵.xlsx'
     diseaseScoreFile = 'symptomScores.txt'
     input = {"人群": "青少年人群", "症状": "三多一少"}
-    predict(matrixFile, diseaseScoreFile, input)
+    model = "model_100.pkl"
+    actions = predict(matrixFile, diseaseScoreFile, input, model)
+    for action in actions:
+        print("诊断", action['cat'], ":", action['val'], "得分:", round(action['score'], 5))
+
